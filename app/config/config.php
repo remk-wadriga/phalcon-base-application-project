@@ -2,23 +2,28 @@
 
 defined('APP_PATH') || define('APP_PATH', realpath('.'));
 
-return new \Phalcon\Config(array(
-    'database' => array(
+return new \Phalcon\Config([
+    'database' => [
         'adapter'     => 'Mysql',
         'host'        => 'localhost',
         'username'    => 'phalcon',
         'password'    => 'phalcon',
         'dbname'      => 'phalcon',
         'charset'     => 'utf8',
-    ),
-    'application' => array(
-        'controllersDir' => APP_PATH . '/app/controllers/',
-        'modelsDir'      => APP_PATH . '/app/models/',
-        'migrationsDir'  => APP_PATH . '/app/migrations/',
-        'viewsDir'       => APP_PATH . '/app/views/',
-        'pluginsDir'     => APP_PATH . '/app/plugins/',
-        'libraryDir'     => APP_PATH . '/app/library/',
-        'cacheDir'       => APP_PATH . '/app/cache/',
-        'baseUri'        => '/blog.local/',
-    )
-));
+    ],
+    'application' => [
+        'migrationsDir'     => APP_PATH . '/app/migrations/',
+        'viewsDir'          => APP_PATH . '/app/views/',
+        'pluginsDir'        => APP_PATH . '/app/plugins/',
+        'libraryDir'        => APP_PATH . '/app/library/',
+        'cacheDir'          => APP_PATH . '/app/cache/',
+        'voltCompilePath'   => APP_PATH . '/app/cache/volt/',
+        //Namespaces paths
+        'abstractsPath'     => APP_PATH . '/app/abstracts',
+        'componentsPath'    => APP_PATH . '/app/components',
+        'controllersPath'   => APP_PATH . '/app/controllers',
+        'modelsPath'        => APP_PATH . '/app/models',
+
+        'baseUri'           => '/blog.local/',
+    ]
+]);

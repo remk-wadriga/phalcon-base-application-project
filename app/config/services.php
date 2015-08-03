@@ -12,6 +12,7 @@ use Phalcon\Db\Adapter\Pdo\Mysql as DbAdapter;
 use Phalcon\Mvc\View\Engine\Volt as VoltEngine;
 use Phalcon\Mvc\Model\Metadata\Memory as MetaDataAdapter;
 use Phalcon\Session\Adapter\Files as SessionAdapter;
+use Phalcon\Mvc\Dispatcher;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
@@ -43,7 +44,7 @@ $di->setShared('view', function () use ($config) {
             $volt = new VoltEngine($view, $di);
 
             $volt->setOptions(array(
-                'compiledPath' => $config->application->cacheDir,
+                'compiledPath' => $config->application->voltCompilePath,
                 'compiledSeparator' => '_'
             ));
 
@@ -77,4 +78,13 @@ $di->setShared('session', function () {
     $session->start();
 
     return $session;
+});
+
+/**
+ * Set the dispatcher
+ */
+$di->set('dispatcher', function(){
+    $dispatcher = new Dispatcher();
+    $dispatcher->setDefaultNamespace('controllers');
+    return $dispatcher;
 });

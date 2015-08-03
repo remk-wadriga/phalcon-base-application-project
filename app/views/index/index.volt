@@ -1,7 +1,11 @@
-<div class="page-header">
-    <h1>Congratulations!</h1>
-</div>
 
-<p>You're now flying with Phalcon. Great things are about to happen!</p>
+{% extends "templates/main.volt" %}
 
-<em>This page is located at views/index/index.phtml</em>
+{% block title %}Hello world page{% endblock %}
+
+{% block content %}
+
+    <h1>Hello {{name}}!</h1>
+    {{link_to('signup', 'Sighup')}}
+
+{% endblock %}

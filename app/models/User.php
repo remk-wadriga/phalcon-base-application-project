@@ -1,9 +1,11 @@
 <?php
 
-use \Phalcon\Mvc\Model;
+namespace models;
+
+use abstracts\ModelAbstract;
 use Phalcon\Mvc\Model\Validator\Email;
 
-class User extends Model
+class User extends ModelAbstract
 {
     /**
      *

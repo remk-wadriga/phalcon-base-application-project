@@ -7,7 +7,12 @@ $loader = new \Phalcon\Loader();
  */
 $loader->registerDirs(
     array(
-        $config->application->controllersDir,
-        $config->application->modelsDir
+        $config->application->controllersPath,
+        $config->application->modelsPath
     )
-)->register();
+)->registerNamespaces([
+    'abstracts' => $config->application->abstractsPath,
+    'components' => $config->application->componentsPath,
+    'controllers' => $config->application->controllersPath,
+    'models' => $config->application->modelsPath
+])->register();
