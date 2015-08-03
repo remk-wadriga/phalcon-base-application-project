@@ -4,9 +4,29 @@ namespace models;
 
 use abstracts\ModelAbstract;
 use Phalcon\Mvc\Model\Validator\Email;
+use Phalcon\Mvc\Model\Validator\StringLength;
+use Phalcon\Mvc\Model\Validator\Uniqueness;
+use Phalcon\Validation\Validator\Confirmation;
+use Phalcon\Mvc\Model\Message;
+use Phalcon\Validation;
+use interfaces\UserIdentityInterface;
 
-class User extends ModelAbstract
+/**
+ * Class User
+ * @package models
+ */
+class User extends ModelAbstract implements UserIdentityInterface
 {
+    const PASSWORD_HASH_SALT = 'Uds877SDd099SDwFr345D';
+    const ROLE_USER = 'ROLE_USER';
+    const ROLE_MODERATOR = 'ROLE_MODERATOR';
+    const ROLE_ADMIN = 'ROLE_ADMIN';
+    const STATUS_NEW = 'STATUS_NEW';
+    const STATUS_ACTIVE = 'STATUS_ACTIVE';
+    const STATUS_BANNED = 'STATUS_BANNED';
+    const STATUS_FROZEN = 'STATUS_FROZEN';
+    const STATUS_DELETED = 'STATUS_DELETED';
+
     /**
      *
      * @var integer
@@ -79,6 +99,17 @@ class User extends ModelAbstract
      */
     public $rating;
 
+
+    /**
+     * @var string
+     */
+    public $password;
+
+    /**
+     * @var string
+     */
+    public $retype_password;
+
     /**
      * Validations and business logic
      *
@@ -86,14 +117,26 @@ class User extends ModelAbstract
      */
     public function validation()
     {
-        $this->validate(
-            new Email(
-                array(
-                    'field'    => 'email',
-                    'required' => true,
-                )
-            )
-        );
+        // Confirmation
+        $this->validate(new Email([
+            'field'    => 'email',
+            'required' => true,
+        ]))->validate(new Uniqueness([
+            'field'    => 'email',
+        ]))->validate(new StringLength([
+            'field' => 'password',
+            'max' => 255,
+            'required' => true,
+        ]))->validate(new StringLength([
+            'field' => 'first_name',
+            'max' => 50,
+        ]))->validate(new StringLength([
+            'field' => 'last_name',
+            'max' => 50,
+        ]))->validate(new StringLength([
+            'field' => 'phone',
+            'max' => 36,
+        ]));
 
         if ($this->validationHasFailed() == true) {
             return false;
@@ -134,4 +177,127 @@ class User extends ModelAbstract
         return parent::findFirst($parameters);
     }
 
+
+    // Events
+
+    public function save($data = null, $whiteList = null)
+    {
+        $validation = new Validation();
+        $validation->add('password', new Confirmation(array(
+            'message' => 'Password doesn\'t match confirmation',
+            'with' => 'retype_password'
+        )));
+
+        $validation->validate($data);
+
+        foreach($validation->getMessages() as $message){
+            $this->appendMessage(new Message($message->getMessage(), $message->getField(), $message->getType()));
+        }
+
+        if(!empty($this->getMessages())){
+            return false;
+        }
+
+        if(!isset($data['reg_date'])){
+            $data['reg_date'] = $this->timeService()->currentDateTime();
+        }
+        if(!isset($data['role'])){
+            $data['role'] = self::ROLE_USER;
+        }
+        if(!isset($data['status'])){
+            $data['status'] = self::STATUS_NEW;
+        }
+        if(!isset($data['rating'])){
+            $data['rating'] = (int)$this->rating;
+        }
+        if(isset($data['password'])){
+            $data['password_hash'] = $this->createPasswordHash($data['password'], $data['reg_date'], $data['email']);
+        }
+
+        return parent::save($data, $whiteList);
+    }
+
+    // END Events
+
+
+
+    // Getters and setters
+
+    // END Getters and setters
+    
+    
+    // Public functions
+
+    // END Public functions
+
+
+    // Protected functions
+
+    /**
+     * createPasswordHash
+     * @param string $password
+     * @param string $regDate
+     * @param string $email
+     * @return string
+     */
+    protected function createPasswordHash($password = null, $regDate = null, $email = null)
+    {
+        if($password === null){
+            $password = $this->password;
+        }
+        if($regDate === null){
+            $regDate = $this->reg_date;
+        }
+        if($email === null){
+            $email = $this->email;
+        }
+
+        return hash('md5', $password.self::PASSWORD_HASH_SALT.$regDate.$email);
+    }
+    
+    // END Protected functions
+
+
+
+    // Implementing UserIdentityInterface
+
+    /**
+     * getByID
+     * @param int $id
+     * @return User
+     */
+    public static function getByID($id)
+    {
+        return self::findFirst($id);
+    }
+
+    /**
+     * getByUserName
+     * @param string $userName
+     * @return User
+     */
+    public static function getByUserName($userName)
+    {
+        return self::findFirst(['email' => $userName]);
+    }
+
+    /**
+     * getID
+     * @return int
+     */
+    public function getID()
+    {
+        return $this->id;
+    }
+
+    /**
+     * validatePassword
+     * @param string $password
+     * @return bool
+     */
+    public function validatePassword($password)
+    {
+        return $this->password_hash === $this->createPasswordHash($password);
+    }
+    // END Implementing UserIdentityInterface
 }

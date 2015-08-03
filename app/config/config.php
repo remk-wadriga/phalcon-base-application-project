@@ -11,6 +11,7 @@ return new \Phalcon\Config([
         'dbname'      => 'phalcon',
         'charset'     => 'utf8',
     ],
+
     'application' => [
         'migrationsDir'     => APP_PATH . '/app/migrations/',
         'viewsDir'          => APP_PATH . '/app/views/',
@@ -23,7 +24,17 @@ return new \Phalcon\Config([
         'componentsPath'    => APP_PATH . '/app/components',
         'controllersPath'   => APP_PATH . '/app/controllers',
         'modelsPath'        => APP_PATH . '/app/models',
+        'interfacesPath'    => APP_PATH . '/app/interfaces',
 
-        'baseUri'           => '/blog.local/',
-    ]
+        'baseUri'           => '/',
+    ],
+
+    'timeService' => [
+        'dateFormat' => 'Y-m-d',
+        'dateTimeFormat' => 'Y-m-d H:i:s',
+    ],
+
+    'user' => [
+        'identityClass' => 'models\User',
+    ],
 ]);

@@ -10,9 +10,10 @@ use Phalcon\Mvc\View;
 use Phalcon\Mvc\Url as UrlResolver;
 use Phalcon\Db\Adapter\Pdo\Mysql as DbAdapter;
 use Phalcon\Mvc\View\Engine\Volt as VoltEngine;
-use Phalcon\Mvc\Model\Metadata\Memory as MetaDataAdapter;
 use Phalcon\Session\Adapter\Files as SessionAdapter;
 use Phalcon\Mvc\Dispatcher;
+use components\TimeService;
+use components\UserService;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
@@ -66,9 +67,9 @@ $di->set('db', function () use ($config) {
 /**
  * If the configuration specify the use of metadata adapter use it or use memory otherwise
  */
-$di->set('modelsMetadata', function () {
+/*$di->set('modelsMetadata', function () {
     return new MetaDataAdapter();
-});
+});*/
 
 /**
  * Start the session the first time some component request the session service
@@ -87,4 +88,20 @@ $di->set('dispatcher', function(){
     $dispatcher = new Dispatcher();
     $dispatcher->setDefaultNamespace('controllers');
     return $dispatcher;
+});
+
+/**
+ * Set the timeService
+ */
+$di->set('timeService', function () use ($config) {
+    return new TimeService($config->timeService->toArray());
+});
+
+/**
+ * Set the User Service
+ */
+$di->set('user', function () use ($config, $di) {
+    $user = new UserService($config->user->toArray());
+    $user->setSession($di->get('session'));
+    return $user;
 });

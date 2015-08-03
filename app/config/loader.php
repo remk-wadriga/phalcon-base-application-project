@@ -14,5 +14,6 @@ $loader->registerDirs(
     'abstracts' => $config->application->abstractsPath,
     'components' => $config->application->componentsPath,
     'controllers' => $config->application->controllersPath,
-    'models' => $config->application->modelsPath
+    'models' => $config->application->modelsPath,
+    'interfaces' => $config->application->interfacesPath,
 ])->register();
