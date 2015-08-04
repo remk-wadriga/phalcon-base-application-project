@@ -13,10 +13,17 @@ use abstracts\ControllerAbstract;
 
 class AccountController extends ControllerAbstract
 {
-    public function indexAction()
+    public function beforeAction()
     {
         if(!$this->getUser()->getIsLogged()){
             return $this->redirect('signin');
         }
+
+        return parent::beforeAction();
+    }
+
+    public function indexAction()
+    {
+
     }
 }

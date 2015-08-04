@@ -16,6 +16,7 @@ use components\TimeService;
 use components\UserService;
 use Phalcon\Events\Manager as EventManager;
 use listeners\AuthListener;
+use listeners\ControllersListener;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
@@ -91,9 +92,15 @@ $di->setShared('session', function () {
 /**
  * Set the dispatcher
  */
-$di->set('dispatcher', function(){
+$di->set('dispatcher', function() use ($eventsManager, $di) {
     $dispatcher = new Dispatcher();
     $dispatcher->setDefaultNamespace('controllers');
+
+    // Set the event manager for dispatcher
+    $dispatcher->setEventsManager($eventsManager);
+    // Attach the listener
+    $eventsManager->attach('dispatch', new ControllersListener($di));
+
     return $dispatcher;
 });
 

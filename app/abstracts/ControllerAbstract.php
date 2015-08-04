@@ -9,6 +9,7 @@
 
 namespace abstracts;
 
+use Phalcon\Exception;
 use Phalcon\Mvc\Controller;
 use Phalcon\Http\Response;
 use Phalcon\Mvc\Url;
@@ -23,6 +24,13 @@ use Phalcon\Http\Request;
  */
 abstract class ControllerAbstract extends Controller
 {
+    private $_exception;
+
+    public function beforeAction()
+    {
+        return true;
+    }
+
     public function render($view = null, $params = [])
     {
         if(is_array($view)){
@@ -47,10 +55,25 @@ abstract class ControllerAbstract extends Controller
     }
 
     /**
+     * getException
+     * @return Exception|null
+     */
+    public function getException()
+    {
+        return $this->_exception;
+    }
+
+    protected function exception($message, $code = 500)
+    {
+        $this->_exception = new Exception($message, $code);
+        return false;
+    }
+
+    /**
      * getUrl
      * @return Url
      */
-    public function getUrl()
+    protected function getUrl()
     {
         return $this->getDI()->get('url');
     }
