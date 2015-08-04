@@ -13,8 +13,10 @@ use abstracts\ServiceAbstract;
 use interfaces\UserIdentityInterface;
 use Phalcon\Exception;
 use Phalcon\Session\Adapter\Files AS SessionAdapter;
+use Phalcon\Events\EventsAwareInterface;
+use Phalcon\Events\ManagerInterface;
 
-class UserService extends ServiceAbstract
+class UserService extends ServiceAbstract implements EventsAwareInterface
 {
     /**
      * @var \interfaces\UserIdentityInterface
@@ -27,26 +29,61 @@ class UserService extends ServiceAbstract
     private $_id;
 
     /**
+     * @var ManagerInterface
+     */
+    private $_eventsManager;
+
+    /**
      * @var SessionAdapter
      */
     public $_session;
     public $identityClass;
     public $sessionKey = 'USER_IDENTITY';
 
+    public function getName()
+    {
+        return $this->getIdentity()->getName();
+    }
+
     public function login($userName, $password)
     {
+        $data = [
+            'userName' => $userName,
+            'password' => $password
+        ];
+        $eventManager = $this->getEventsManager();
+        // Create event "beforeLogin" for event manager
+        $eventManager->fire('user:beforeLogin', $this, $data);
+
         if(empty($userName) || empty($password)){
-            throw new Exception('Useraname and password required');
+            $data['error'] = 'Useraname and password required';
+
+            // Create event "loginFailed" for event manager
+            $eventManager->fire('user:loginFailed', $this, $data);
+            throw new Exception($data['error']);
         }
 
+        // Clear user session
         $this->logout();
+        // Get identity class
         $identityClass = $this->getIdentityClass();
+        // Find the user identity object
         $identityObject = $identityClass::getByUserName($userName);
+
+        // Check the identity object and password
         if(!empty($identityObject) && $identityObject->validatePassword($password)){
+            // Add user ID in session
             $this->getSession()->set($this->sessionKey, $identityObject->getID());
             $this->_identity = $identityObject;
+
+            // Create event "afterLogin" for event manager
+            $eventManager->fire('user:afterLogin', $this, $identityObject);
             return true;
         }else{
+            $data['error'] = 'UserName or password is incorrect';
+
+            // Create event "loginFailed" for event manager
+            $eventManager->fire('user:loginFailed', $this, $data);
             return false;
         }
     }
@@ -106,6 +143,15 @@ class UserService extends ServiceAbstract
     }
 
     /**
+     * getIsLogged
+     * @return bool
+     */
+    public function getIsLogged()
+    {
+        return $this->getID() > 0;
+    }
+
+    /**
      * getIdentityClass
      * @return UserIdentityInterface
      * @throws Exception
@@ -119,4 +165,27 @@ class UserService extends ServiceAbstract
 
         return $identityClass;
     }
+
+
+    // Implements EventsAwareInterface
+
+    /**
+     * setEventsManager
+     * @param ManagerInterface $eventsManager
+     */
+    public function setEventsManager(ManagerInterface $eventsManager)
+    {
+        $this->_eventsManager = $eventsManager;
+    }
+
+    /**
+     * getEventsManager
+     * @return ManagerInterface
+     */
+    public function getEventsManager()
+    {
+        return $this->_eventsManager;
+    }
+
+    // END Implements EventsAwareInterface
 }

@@ -7,7 +7,6 @@ use Phalcon\Mvc\Model\Validator\Email;
 use Phalcon\Mvc\Model\Validator\StringLength;
 use Phalcon\Mvc\Model\Validator\Uniqueness;
 use Phalcon\Validation\Validator\Confirmation;
-use Phalcon\Mvc\Model\Message;
 use Phalcon\Validation;
 use interfaces\UserIdentityInterface;
 
@@ -180,8 +179,12 @@ class User extends ModelAbstract implements UserIdentityInterface
 
     // Events
 
-    public function save($data = null, $whiteList = null)
+    public function beforeSave($data = null)
     {
+        if(!$this->isNew()){
+            return true;
+        }
+
         $validation = new Validation();
         $validation->add('password', new Confirmation(array(
             'message' => 'Password doesn\'t match confirmation',
@@ -189,10 +192,7 @@ class User extends ModelAbstract implements UserIdentityInterface
         )));
 
         $validation->validate($data);
-
-        foreach($validation->getMessages() as $message){
-            $this->appendMessage(new Message($message->getMessage(), $message->getField(), $message->getType()));
-        }
+        $this->addMessages($validation->getMessages());
 
         if(!empty($this->getMessages())){
             return false;
@@ -214,7 +214,7 @@ class User extends ModelAbstract implements UserIdentityInterface
             $data['password_hash'] = $this->createPasswordHash($data['password'], $data['reg_date'], $data['email']);
         }
 
-        return parent::save($data, $whiteList);
+        return true;
     }
 
     // END Events
@@ -227,6 +227,16 @@ class User extends ModelAbstract implements UserIdentityInterface
     
     
     // Public functions
+
+    public function getName()
+    {
+        $name = $this->first_name;
+        if(!empty($this->last_name)){
+            $name .= !empty($name) ? ' '.$this->last_name : $this->last_name;
+        }
+
+        return !empty($name) ? $name : $this->email;
+    }
 
     // END Public functions
 
@@ -298,6 +308,15 @@ class User extends ModelAbstract implements UserIdentityInterface
     public function validatePassword($password)
     {
         return $this->password_hash === $this->createPasswordHash($password);
+    }
+
+    /**
+     * setLoginTime
+     */
+    public function setLoginTime()
+    {
+        $this->last_visit_date = $this->timeService()->currentDateTime();
+        $this->update();
     }
     // END Implementing UserIdentityInterface
 }

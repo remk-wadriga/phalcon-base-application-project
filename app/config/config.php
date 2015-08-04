@@ -25,6 +25,8 @@ return new \Phalcon\Config([
         'controllersPath'   => APP_PATH . '/app/controllers',
         'modelsPath'        => APP_PATH . '/app/models',
         'interfacesPath'    => APP_PATH . '/app/interfaces',
+        'formsPath'         => APP_PATH . '/app/forms',
+        'listenersPath'     => APP_PATH . '/app/listeners',
 
         'baseUri'           => '/',
     ],

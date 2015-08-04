@@ -10,6 +10,7 @@
 namespace controllers;
 
 use abstracts\ControllerAbstract;
+use forms\LoginForm;
 
 class SigninController extends ControllerAbstract
 {
@@ -20,7 +21,14 @@ class SigninController extends ControllerAbstract
 
     public function loginAction()
     {
-        $this->getUser()->login($this->post('email'), $this->post('password'));
-        echo '<pre>'; print_r($this->getUser()->getIdentity()); exit('</pre>');
+        $form = new LoginForm();
+        if($form->login($this->post())){
+            return $this->redirect('account/index');
+        }else{
+            echo 'Sorry, the following problems were generated: ';
+            foreach ($form->getMessages() as $message) {
+                echo $message->getMessage(), '<br/>';
+            }
+        }
     }
 }

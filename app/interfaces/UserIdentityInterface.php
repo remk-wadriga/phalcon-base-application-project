@@ -33,9 +33,20 @@ interface UserIdentityInterface
     public function getID();
 
     /**
+     * getName
+     * @return string
+     */
+    public function getName();
+
+    /**
      * validatePassword
      * @param string $password
      * @return bool
      */
     public function validatePassword($password);
+
+    /**
+     * setLoginTime
+     */
+    public function setLoginTime();
 }

@@ -15,7 +15,7 @@
     </p>
 
     <p>
-        {{ submit_button('Register') }}
+        {{ submit_button('Login') }}
     </p>
 
     {{ end_form() }}

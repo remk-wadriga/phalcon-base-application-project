@@ -3,8 +3,8 @@
  * Created by Rem.
  * Author: Dmitry Kushneriv
  * Email: remkwadriga@yandex.ua
- * Date: 31-07-2015
- * Time: 13:57 PM
+ * Date: 04-08-2015
+ * Time: 09:26 AM
  */
 
 namespace abstracts;
@@ -13,50 +13,8 @@ use Phalcon\Mvc\Model;
 use Phalcon\Validation\Message\Group;
 use Phalcon\Mvc\Model\Message;
 
-abstract class ModelAbstract extends Model
+abstract class FormAbstract extends Model
 {
-    private $_isNew = false;
-
-    public function update($data = null, $whiteList = null)
-    {
-        $this->_isNew = false;
-        return parent::update($data, $whiteList);
-    }
-
-    public function save($data = null, $whiteList = null)
-    {
-        $this->_isNew = !isset($this->id);
-        if(!$this->beforeSave($data)){
-            return false;
-        }
-
-        $result = parent::save($data, $whiteList);
-
-        $this->afterSave($data);
-
-        return $result;
-    }
-
-    public function create($data = null, $whiteList = null)
-    {
-        $this->_isNew = true;
-    }
-
-    public function beforeSave($data = null)
-    {
-        return true;
-    }
-
-    public function afterSave($data = null)
-    {
-
-    }
-
-    public function isNew()
-    {
-        return $this->_isNew;
-    }
-
     /**
      * setAttributes
      * @param array $attributes
@@ -83,6 +41,10 @@ abstract class ModelAbstract extends Model
         }
     }
 
+    /**
+     * addMessages
+     * @param Group $messages
+     */
     protected function addMessages(Group $messages)
     {
         foreach($messages as $message){
@@ -97,6 +59,15 @@ abstract class ModelAbstract extends Model
     protected function timeService()
     {
         return $this->getService('timeService');
+    }
+
+    /**
+     * user
+     * @return \components\UserService
+     */
+    protected function user()
+    {
+        return $this->getService('user');
     }
 
     /**

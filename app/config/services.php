@@ -14,11 +14,18 @@ use Phalcon\Session\Adapter\Files as SessionAdapter;
 use Phalcon\Mvc\Dispatcher;
 use components\TimeService;
 use components\UserService;
+use Phalcon\Events\Manager as EventManager;
+use listeners\AuthListener;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
  */
 $di = new FactoryDefault();
+
+/**
+ * Event manager
+ */
+$eventsManager = new EventManager();
 
 /**
  * The URL component is used to generate all kind of urls in the application
@@ -100,8 +107,13 @@ $di->set('timeService', function () use ($config) {
 /**
  * Set the User Service
  */
-$di->set('user', function () use ($config, $di) {
+$di->set('user', function () use ($config, $di, $eventsManager) {
     $user = new UserService($config->user->toArray());
     $user->setSession($di->get('session'));
+
+    // Set the event manager for user service
+    $user->setEventsManager($eventsManager);
+    // Attach the listener
+    $eventsManager->attach('user', new AuthListener());
     return $user;
 });
