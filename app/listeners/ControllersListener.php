@@ -40,10 +40,12 @@ class ControllersListener extends ListenerAbstract
      * beforeExecuteRoute
      * @param \Phalcon\Events\Event $event
      * @param \Phalcon\Mvc\Dispatcher $dispatcher
+     * @return bool|Response
+     * @throws \Phalcon\Exception
      */
     public function beforeExecuteRoute($event, $dispatcher)
     {
-        $controller = $event->getSource()->getActiveController();
+        $controller = $dispatcher->getActiveController();
         $result = $controller->beforeAction();
 
         if($result instanceof Response){
@@ -54,6 +56,8 @@ class ControllersListener extends ListenerAbstract
                 throw $exception;
             }
         }
+
+        return true;
     }
 
     /**
