@@ -26,7 +26,9 @@ abstract class ModelAbstract extends Model
     public function save($data = null, $whiteList = null)
     {
         $this->_isNew = !isset($this->id);
-        if(!$this->beforeSave($data)){
+
+        $data = $this->beforeSave($data);
+        if(!is_array($data)){
             return false;
         }
 
@@ -44,7 +46,7 @@ abstract class ModelAbstract extends Model
 
     public function beforeSave($data = null)
     {
-        return true;
+        return $data;
     }
 
     public function afterSave($data = null)

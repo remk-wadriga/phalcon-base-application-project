@@ -214,7 +214,7 @@ class User extends ModelAbstract implements UserIdentityInterface
             $data['password_hash'] = $this->createPasswordHash($data['password'], $data['reg_date'], $data['email']);
         }
 
-        return true;
+        return $data;
     }
 
     // END Events
