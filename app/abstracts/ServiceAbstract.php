@@ -15,6 +15,7 @@ abstract class ServiceAbstract
     public function __construct($params = [])
     {
         $this->setParams($params);
+        $this->init();
     }
 
     public function __get($name)
@@ -25,6 +26,11 @@ abstract class ServiceAbstract
     public function __set($name, $value)
     {
         $this->setAttribute($name, $value);
+    }
+
+    public function init()
+    {
+
     }
 
     protected function getAttribute($name)

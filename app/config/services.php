@@ -17,6 +17,7 @@ use components\UserService;
 use Phalcon\Events\Manager as EventManager;
 use listeners\AuthListener;
 use listeners\ControllersListener;
+use components\AssetManager;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
@@ -46,6 +47,7 @@ $di->setShared('view', function () use ($config) {
     $view = new View();
 
     $view->setViewsDir($config->application->viewsDir);
+    $view->setVars($config->view->vars->toArray());
 
     $view->registerEngines(array(
         '.volt' => function ($view, $di) use ($config) {
@@ -54,7 +56,9 @@ $di->setShared('view', function () use ($config) {
 
             $volt->setOptions(array(
                 'compiledPath' => $config->application->voltCompilePath,
-                'compiledSeparator' => '_'
+                'compiledSeparator' => '_',
+                'stat' => true,
+                'compileAlways' => true,
             ));
 
             return $volt;
@@ -123,4 +127,14 @@ $di->set('user', function () use ($config, $di, $eventsManager) {
     // Attach the listener
     $eventsManager->attach('user', new AuthListener());
     return $user;
+});
+
+/**
+ * Set the Asset manager
+ */
+$di->set('assetManager', function() use ($config, $di) {
+    $assetManager = new AssetManager(array_merge($config->assetManager->toArray(), [
+        'manager' => $di->get('assets')
+    ]));
+    return $assetManager;
 });

@@ -27,6 +27,7 @@ return new \Phalcon\Config([
         'interfacesPath'    => APP_PATH . '/app/interfaces',
         'formsPath'         => APP_PATH . '/app/forms',
         'listenersPath'     => APP_PATH . '/app/listeners',
+        'assetsPath'        => APP_PATH . '/app/assets',
 
         'baseUri'           => '/',
     ],
@@ -38,5 +39,23 @@ return new \Phalcon\Config([
 
     'user' => [
         'identityClass' => 'models\User',
+    ],
+
+    'assetManager' => [
+        'collections' => [
+            'main' => [
+                'priority' => 1,
+            ],
+        ],
+        'basePath' => '/assets',
+        'cssPath' => '/css',
+        'jsPath' => '/js',
+        'assetsNamespace' => 'assets',
+    ],
+
+    'view' => [
+        'vars' => [
+
+        ],
     ],
 ]);

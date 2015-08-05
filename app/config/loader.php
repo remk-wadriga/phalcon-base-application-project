@@ -18,4 +18,5 @@ $loader->registerDirs(
     'interfaces' => $config->application->interfacesPath,
     'forms' => $config->application->formsPath,
     'listeners' => $config->application->listenersPath,
+    'assets' => $config->application->assetsPath,
 ])->register();

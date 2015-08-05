@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    {{ assetManager.displayScc('main') }}
 
     {% block head %}
 
@@ -24,6 +25,8 @@
 
     </div>
 
+
+    {{ assetManager.displayJs('main') }}
 </body>
 
 </html>
