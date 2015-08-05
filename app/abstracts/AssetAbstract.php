@@ -18,10 +18,12 @@ abstract class AssetAbstract
     public $id;
     public $js = [];
     public $css = [];
+    public $fonts = [];
     public $depending = [];
     public $basePath;
     public $cssPath;
     public $jsPath;
+    public $fontsPath;
     public $priority;
 
     public function __construct($params = [])

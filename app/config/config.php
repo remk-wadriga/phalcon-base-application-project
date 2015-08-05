@@ -50,6 +50,7 @@ return new \Phalcon\Config([
         'basePath' => '/assets',
         'cssPath' => '/css',
         'jsPath' => '/js',
+        'fontsPath' => '/fonts',
         'assetsNamespace' => 'assets',
     ],
 

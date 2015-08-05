@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     {{ assetManager.displayScc('main') }}
+    {{ assetManager.displayFonts('main') }}
 
-    {% block head %}
+    {% block head %}{% endblock %}
 
-    {% endblock %}
     <title>{% block title %}{% endblock %}</title>
 
 </head>
@@ -15,16 +15,33 @@
 
     <div id="main_wrapper">
 
-        <div id="content">
-            {% block content %}{% endblock %}
+        <div class="row show-grid" id="header_wrapper">
+            {% block header %}
+                {{ partial('templates/_header') }}
+            {% endblock %}
         </div>
 
-        <div id="footer">
-            {% block footer %}&copy; Copyright 2015, All rights reserved.{% endblock %}
+        <div class="row show-grid" id="content_wrapper">
+
+            <div class="col-md-3" id="left_menu">
+                {% block leftMenu %}
+                    {{ partial('templates/_left-menu') }}
+                {% endblock %}
+            </div>
+
+            <div class="col-md-9" id="content">
+                {% block content %}{% endblock %}
+            </div>
+
+        </div>
+
+        <div class="row show-grid" id="footer_wrapper">
+            {% block footer %}
+                {{ partial('templates/_footer') }}
+            {% endblock %}
         </div>
 
     </div>
-
 
     {{ assetManager.displayJs('main') }}
 </body>

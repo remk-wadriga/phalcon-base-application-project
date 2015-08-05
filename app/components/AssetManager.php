@@ -21,13 +21,16 @@ class AssetManager extends ServiceAbstract
     public $basePath;
     public $cssPath;
     public $jsPath;
+    public $fontsPath;
     public $assetsNamespace;
 
     protected $cssPattern = '<link rel="stylesheet" type="text/css" href="%s">';
     protected $jsPattern = '<script type="text/javascript" src="%s"></script>';
+    protected $fontPattern = '<link rel="stylesheet" type="text/css" href="%s">';
 
     private $_displayedScc = [];
     private $_displayedJs = [];
+    private $_displayedFonts = [];
 
     public function init()
     {
@@ -88,6 +91,33 @@ class AssetManager extends ServiceAbstract
         }
     }
 
+    public function displayFonts($collection = null)
+    {
+        $fontsArray = [];
+        if($collection !== null){
+            $collection = $this->getCollection($collection);
+            if($collection !== null){
+                $fontsArray = $collection->fonts;
+            }
+            foreach($this->collections as $collection){
+                if($collection->priority = AssetAbstract::PRIORITY_MAIN){
+                    $fontsArray = array_merge($fontsArray, $collection->fonts);
+                }
+            }
+        }else{
+            foreach($this->collections as $collection){
+                $fontsArray = array_merge($fontsArray, $collection->fonts);
+            }
+        }
+
+        foreach($fontsArray as $font){
+            if(!in_array($font, $this->_displayedFonts)){
+                $this->_displayedFonts[] = $font;
+                echo sprintf($this->fontPattern, $font);
+            }
+        }
+    }
+
     /**
      * getCollection
      * @param $collection
@@ -129,6 +159,7 @@ class AssetManager extends ServiceAbstract
 
             $newCollection->css = $this->getStyles($newCollection);
             $newCollection->js = $this->getScripts($newCollection);
+            $newCollection->fonts = $this->getFonts($newCollection);
 
             if(isset($newCollection->depending)){
                 $depending = [];
@@ -140,12 +171,13 @@ class AssetManager extends ServiceAbstract
                     }
                 }
 
-                $this->addCollections($depending, $newCollection);
+                $this->addCollections(array_reverse($depending), $newCollection);
             }
 
             if($dependent !== null){
                 $dependent->css = array_merge($newCollection->css, $dependent->css);
                 $dependent->js = array_merge($newCollection->js, $dependent->js);
+                $dependent->fonts = array_merge($newCollection->fonts, $dependent->fonts);
             }
 
             $this->collections[$key] = $newCollection;
@@ -182,5 +214,21 @@ class AssetManager extends ServiceAbstract
         }
 
         return $scripts;
+    }
+
+    private function getFonts(AssetAbstract $collection)
+    {
+        $fonts = [];
+        $path = isset($collection->basePath) ? $collection->basePath : $this->basePath;
+
+        if(!empty($collection->fonts)){
+            $fontsPath = isset($collection->fontsPath) ? $collection->fontsPath : $this->fontsPath;
+            $fontsPath = str_replace(['//', '\\\\', DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR], '/', $path . $fontsPath . '/');
+            foreach($collection->fonts as $font){
+                $fonts[] = $fontsPath . $font;
+            }
+        }
+
+        return $fonts;
     }
 }

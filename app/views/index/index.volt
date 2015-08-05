@@ -5,7 +5,7 @@
 
 {% block content %}
 
-    <h1>Hello {{name}}!</h1>
+    Hello {{name}}!
     {{link_to('signin', 'Login')}}
     <br />
     {{link_to('signup', 'Sighup')}}

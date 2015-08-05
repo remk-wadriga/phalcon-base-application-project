@@ -5,6 +5,6 @@
 
 {% block content %}
 
-    <h1>Hello {{user.name}}!</h1>
+    Hello {{user.name}}!
 
 {% endblock %}
