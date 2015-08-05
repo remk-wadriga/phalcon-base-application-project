@@ -13,10 +13,9 @@ use abstracts\AssetAbstract;
 
 class JqueryAsset extends AssetAbstract
 {
-    public $cssPath = '/jquery/css';
-    public $jsPath = '/jquery/js';
+    public $jsPath = '/jquery';
 
     public $js = [
-        'jquery',
+        'jquery-2.1.4.min',
     ];
 }

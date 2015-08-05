@@ -13,11 +13,8 @@ use abstracts\AssetAbstract;
 
 class MainAsset extends AssetAbstract
 {
-    public function init()
-    {
-        parent::init();
-        $this->priority = self::PRIORITY_MAIN;
-    }
+    public $cssPath = '/main/css';
+    public $jsPath = '/main/js';
 
     public $js = [
         'main',
