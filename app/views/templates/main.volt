@@ -44,6 +44,8 @@
     </div>
 
     {{ assetManager.displayJs('main') }}
+
+    {{ partial('templates/_init-javasripts') }}
 </body>
 
 </html>

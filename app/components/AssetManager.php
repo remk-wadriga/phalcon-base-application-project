@@ -14,6 +14,14 @@ use abstracts\AssetAbstract;
 
 class AssetManager extends ServiceAbstract
 {
+    const MIMETYPE_STYLESHEET = 'stylesheet';
+    const MIMETYPE_JAVASCRIPT = 'text/javascript';
+    const MIMETYPE_FONOBJECT = 'application/vnd.ms-fontobject';
+    const MIMETYPE_SVG_XML = 'image/svg+xml';
+    const MIMETYPE_TTF = 'application/x-font-ttf';
+    const MIMETYPE_WOOF = 'application/x-font-woff';
+    const MIMETYPE_OCTET_STREAM = 'application/octet-stream';
+
     /**
      * @var AssetAbstract[]
      */
@@ -23,14 +31,25 @@ class AssetManager extends ServiceAbstract
     public $jsPath;
     public $fontsPath;
     public $assetsNamespace;
+    public $defaultMimeType = 'stylesheet';
 
-    protected $cssPattern = '<link rel="stylesheet" type="text/css" href="%s">';
-    protected $jsPattern = '<script type="text/javascript" src="%s"></script>';
-    protected $fontPattern = '<link rel="stylesheet" type="text/css" href="%s">';
+    protected $cssPattern = '<link rel="%s" type="text/css" href="%s">';
+    protected $jsPattern = '<script type="%s" src="%s"></script>';
+    protected $fontPattern = '<link rel="%s" type="text/css" href="%s">';
 
     private $_displayedScc = [];
     private $_displayedJs = [];
     private $_displayedFonts = [];
+
+    private static $_mimeTypes = [
+        self::MIMETYPE_STYLESHEET => '.css',
+        self::MIMETYPE_JAVASCRIPT => '.js',
+        self::MIMETYPE_FONOBJECT => '.eot',
+        self::MIMETYPE_SVG_XML => '.svg',
+        self::MIMETYPE_TTF => '.ttf',
+        self::MIMETYPE_WOOF => '.woff',
+        self::MIMETYPE_OCTET_STREAM => '.woff2',
+    ];
 
     public function init()
     {
@@ -59,7 +78,7 @@ class AssetManager extends ServiceAbstract
         foreach($cssArray as $css){
             if(!in_array($css, $this->_displayedScc)){
                 $this->_displayedScc[] = $css;
-                echo sprintf($this->cssPattern, $css);
+                echo sprintf($this->cssPattern, $this->getMimeType($css), $css);
             }
         }
     }
@@ -86,7 +105,7 @@ class AssetManager extends ServiceAbstract
         foreach($jsArray as $js){
             if(!in_array($js, $this->_displayedJs)){
                 $this->_displayedJs[] = $js;
-                echo sprintf($this->jsPattern, $js);
+                echo sprintf($this->jsPattern, $this->getMimeType($js), $js);
             }
         }
     }
@@ -113,7 +132,7 @@ class AssetManager extends ServiceAbstract
         foreach($fontsArray as $font){
             if(!in_array($font, $this->_displayedFonts)){
                 $this->_displayedFonts[] = $font;
-                echo sprintf($this->fontPattern, $font);
+                echo sprintf($this->fontPattern, $this->getMimeType($font), $font);
             }
         }
     }
@@ -230,5 +249,29 @@ class AssetManager extends ServiceAbstract
         }
 
         return $fonts;
+    }
+
+    private function getMimeType($link)
+    {
+        $mime = null;
+
+        foreach(self::$_mimeTypes as $mimeType => $prefixes){
+            if(!is_array($prefixes)){
+                $prefixes = [$prefixes];
+            }
+
+            foreach($prefixes as $prefix){
+                if(strpos($link, $prefix)){
+                    $mime = $mimeType;
+                    break;
+                }
+            }
+
+            if($mime !== null){
+                break;
+            }
+        }
+
+        return $mime !== null ? $mime : $this->defaultMimeType;
     }
 }

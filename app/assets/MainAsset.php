@@ -26,5 +26,6 @@ class MainAsset extends AssetAbstract
 
     public $depending = [
         'bootstrap',
+        'leftMenu',
     ];
 }
