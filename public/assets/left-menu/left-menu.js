@@ -22,7 +22,7 @@ LeftMenu = {
     },
 
     setHandlers: function(){
-        console.log('OK');
+
     }
 
 
