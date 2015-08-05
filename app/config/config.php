@@ -18,7 +18,6 @@ return new \Phalcon\Config([
         'pluginsDir'        => APP_PATH . '/app/plugins/',
         'libraryDir'        => APP_PATH . '/app/library/',
         'cacheDir'          => APP_PATH . '/app/cache/',
-        'voltCompilePath'   => APP_PATH . '/app/cache/volt/',
         //Namespaces paths
         'abstractsPath'     => APP_PATH . '/app/abstracts',
         'componentsPath'    => APP_PATH . '/app/components',
@@ -28,6 +27,7 @@ return new \Phalcon\Config([
         'formsPath'         => APP_PATH . '/app/forms',
         'listenersPath'     => APP_PATH . '/app/listeners',
         'assetsPath'        => APP_PATH . '/app/assets',
+        'widgetsPath'       => APP_PATH . '/app/widgets',
 
         'baseUri'           => '/',
     ],
@@ -58,5 +58,18 @@ return new \Phalcon\Config([
         'vars' => [
 
         ],
+    ],
+
+    'volt' => [
+        'compilePath' => APP_PATH . '/app/cache/volt/',
+        'functions' => [
+            'left_menu' => [
+                'function' => '\\widgets\\accordion\\AccordionWidget::run',
+                'params' => [
+                    'modelClass' => '\\models\\LeftMenu',
+                    'methodName' => 'getItemsArray',
+                ]
+            ],
+        ]
     ],
 ]);

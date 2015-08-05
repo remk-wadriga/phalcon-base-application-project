@@ -59,6 +59,11 @@ abstract class ModelAbstract extends Model
         return $this->_isNew;
     }
 
+    public static function className()
+    {
+        return get_called_class();
+    }
+
     /**
      * setAttributes
      * @param array $attributes

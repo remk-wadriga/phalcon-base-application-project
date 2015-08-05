@@ -4,6 +4,8 @@
 
 LeftMenu = {
 
+    leftMenuID: '#left_menu_accordion',
+
     init: function(data){
         if(data !== undefined){
             $.each(data, function(index, value){
@@ -18,15 +20,19 @@ LeftMenu = {
     },
 
     setAutoFunctions: function(){
-
+        LeftMenu.initLeftMenuPlugin();
     },
 
     setHandlers: function(){
 
-    }
+    },
 
 
     // Auto functions
+
+    initLeftMenuPlugin: function(){
+        $(LeftMenu.leftMenuID).metisMenu();
+    }
 
     // END Auto functions
 

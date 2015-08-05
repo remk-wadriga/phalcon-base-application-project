@@ -55,11 +55,29 @@ $di->setShared('view', function () use ($config) {
             $volt = new VoltEngine($view, $di);
 
             $volt->setOptions(array(
-                'compiledPath' => $config->application->voltCompilePath,
+                'compiledPath' => $config->volt->compilePath,
                 'compiledSeparator' => '_',
                 'stat' => true,
                 'compileAlways' => true,
             ));
+
+            $functions = $config->volt->functions->toArray();
+            foreach($functions as $name => $function){
+                $volt->getCompiler()->addFunction($name, function($params) use($function) {
+                    if(!is_array($params)){
+                        $params = (array)$params;
+                    }
+                    if(is_array($function)){
+                        $funcArray = $function;
+                        $function = $funcArray['function'];
+                        $params = array_merge($params, $funcArray['params']);
+                    }
+
+                    $params = serialize(array_filter($params));
+
+                    return "$function(unserialize('{$params}'))";
+                });
+            }
 
             return $volt;
         },

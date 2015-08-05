@@ -25,7 +25,7 @@
 
             <div class="col-md-3" id="left_menu">
                 {% block leftMenu %}
-                    {{ partial('templates/_left-menu') }}
+                    {{ left_menu() }}
                 {% endblock %}
             </div>
 
