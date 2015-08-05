@@ -16,7 +16,7 @@ use widgets\accordion\AccordionWidget;
 <li id="left_menu_item_<?= $item['id'] ?>" data-id="<?= $item['id'] ?>">
 
     <a href="<?= $item['link'] ? $item['link'] : '#' ?>">
-        <?= $item['type'] !== AccordionWidget::TYPE_MAIN ? $item['title'] : '' ?>
+        <?= $item['type'] != AccordionWidget::TYPE_MAIN ? $item['title'] : '' ?>
         <?php if($item['icon']): ?>
             <i class="<?= $item['icon'] ?>"></i>
         <?php endif; ?>
