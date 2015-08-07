@@ -11,8 +11,9 @@ namespace components;
 
 use abstracts\ServiceAbstract;
 use abstracts\AssetAbstract;
+use interfaces\AssetManagerInterface;
 
-class AssetManager extends ServiceAbstract
+class AssetManager extends ServiceAbstract implements AssetManagerInterface
 {
     const MIMETYPE_STYLESHEET = 'stylesheet';
     const MIMETYPE_JAVASCRIPT = 'text/javascript';
@@ -36,10 +37,17 @@ class AssetManager extends ServiceAbstract
     protected $cssPattern = '<link rel="%s" type="text/css" href="%s">';
     protected $jsPattern = '<script type="%s" src="%s"></script>';
     protected $fontPattern = '<link rel="%s" type="text/css" href="%s">';
+    protected $scriptsPattern = '<script type="text/javascript">jQuery(function($){%s});</script>';
+    protected $displayAfterRenderPattern = '<script type="text/javascript">window.onload=function(){%s}</script>';
+    protected $css = [];
+    protected $js = [];
+    protected $fonts = [];
+    protected $scripts = [];
 
-    private $_displayedScc = [];
-    private $_displayedJs = [];
-    private $_displayedFonts = [];
+    protected $_displayedScc = [];
+    protected $_displayedJs = [];
+    protected $_displayedFonts = [];
+    protected $_displayedScripts = [];
 
     private static $_mimeTypes = [
         self::MIMETYPE_STYLESHEET => '.css',
@@ -56,91 +64,66 @@ class AssetManager extends ServiceAbstract
         $this->addCollections($this->collections);
     }
 
+    public function addCss($css)
+    {
+        $this->css[] = $css;
+    }
+
+    public function addJs($js)
+    {
+        $this->js[] = $js;
+    }
+
+    public function addFont($font)
+    {
+        $this->fonts[] = $font;
+    }
+
+    public function assScript($script)
+    {
+        $this->scripts[] = $script;
+    }
+
+    /**
+     * displayScc
+     * @param string $collection
+     */
     public function displayScc($collection = null)
     {
-        $cssArray = [];
-        if($collection !== null){
-            $collection = $this->getCollection($collection);
-            if($collection !== null){
-                $cssArray = $collection->css;
-            }
-            foreach($this->collections as $collection){
-                if($collection->priority = AssetAbstract::PRIORITY_MAIN){
-                    $cssArray = array_merge($cssArray, $collection->css);
-                }
-            }
-        }else{
-            foreach($this->collections as $collection){
-                $cssArray = array_merge($cssArray, $collection->css);
-            }
-        }
-
-        foreach($cssArray as $css){
-            if(!in_array($css, $this->_displayedScc)){
-                $this->_displayedScc[] = $css;
-                echo sprintf($this->cssPattern, $this->getMimeType($css), $css);
-            }
-        }
+        $this->displayAssets($collection, 'css');
     }
 
+    /**
+     * displayJs
+     * @param string $collection
+     */
     public function displayJs($collection = null)
     {
-        $jsArray = [];
-        if($collection !== null){
-            $collection = $this->getCollection($collection);
-            if($collection !== null){
-                $jsArray = $collection->js;
-            }
-            foreach($this->collections as $collection){
-                if($collection->priority = AssetAbstract::PRIORITY_MAIN){
-                    $jsArray = array_merge($jsArray, $collection->js);
-                }
-            }
-        }else{
-            foreach($this->collections as $collection){
-                $jsArray = array_merge($jsArray, $collection->js);
-            }
-        }
-
-        foreach($jsArray as $js){
-            if(!in_array($js, $this->_displayedJs)){
-                $this->_displayedJs[] = $js;
-                echo sprintf($this->jsPattern, $this->getMimeType($js), $js);
-            }
-        }
+        $this->displayAssets($collection, 'js');
     }
 
+    /**
+     * displayFonts
+     * @param string $collection
+     */
     public function displayFonts($collection = null)
     {
-        $fontsArray = [];
-        if($collection !== null){
-            $collection = $this->getCollection($collection);
-            if($collection !== null){
-                $fontsArray = $collection->fonts;
-            }
-            foreach($this->collections as $collection){
-                if($collection->priority = AssetAbstract::PRIORITY_MAIN){
-                    $fontsArray = array_merge($fontsArray, $collection->fonts);
-                }
-            }
-        }else{
-            foreach($this->collections as $collection){
-                $fontsArray = array_merge($fontsArray, $collection->fonts);
-            }
-        }
+        $this->displayAssets($collection, 'fonts');
+    }
 
-        foreach($fontsArray as $font){
-            if(!in_array($font, $this->_displayedFonts)){
-                $this->_displayedFonts[] = $font;
-                echo sprintf($this->fontPattern, $this->getMimeType($font), $font);
-            }
-        }
+    /**
+     * displayFonts
+     * @param string $collection
+     */
+    public function displayScripts($collection = null)
+    {
+        $this->displayAssets($collection, 'scripts');
     }
 
     /**
      * getCollection
-     * @param $collection
-     * @return AssetAbstract|null
+     * @param string $collection
+     * @return \abstracts\AssetAbstract|null
      */
     public function getCollection($collection)
     {
@@ -150,9 +133,9 @@ class AssetManager extends ServiceAbstract
     /**
      * addCollections
      * @param array $collections
-     * @param AssetAbstract $dependent
+     * @param \abstracts\AssetAbstract $dependent
      */
-    protected function addCollections(array $collections, $dependent = null)
+    public function addCollections(array $collections, $dependent = null)
     {
         foreach($collections as $index => $collection){
             $params = [];
@@ -160,7 +143,24 @@ class AssetManager extends ServiceAbstract
                 $params = $collection;
                 $collection = $index;
             }
-            $key = $collection;
+
+            if(strpos($collection, '\\') === false){
+                $collectionClass = $this->assetsNamespace . '\\' . ucfirst($collection) . 'Asset';
+                $key = $collection;
+            }else{
+                $collectionClass = $collection;
+                if(is_string($index)){
+                    $key = $index;
+                }else{
+                    $classNameParts = explode('\\', $collection);
+                    $className = end($classNameParts);
+                    $key = lcfirst($className);
+                }
+            }
+
+            if(!class_exists($collectionClass)){
+                continue;
+            }
 
             if(!isset($params['priority'])){
                 $params['priority'] = AssetAbstract::PRIORITY_PAGE;
@@ -169,12 +169,13 @@ class AssetManager extends ServiceAbstract
                 $params['id'] = $key;
             }
 
-            $collectionClass = $this->assetsNamespace . '\\' . ucfirst($collection) . 'Asset';
-            if(!class_exists($collectionClass)){
-                continue;
-            }
-
             $newCollection = new $collectionClass($params);
+
+            if($dependent !== null){
+                $newCollection->cssPos = $dependent->cssPos;
+                $newCollection->jsPos = $dependent->jsPos;
+                $newCollection->fontsPos = $dependent->fontsPos;
+            }
 
             $newCollection->css = $this->getStyles($newCollection);
             $newCollection->js = $this->getScripts($newCollection);
@@ -197,6 +198,7 @@ class AssetManager extends ServiceAbstract
                 $dependent->css = array_merge($newCollection->css, $dependent->css);
                 $dependent->js = array_merge($newCollection->js, $dependent->js);
                 $dependent->fonts = array_merge($newCollection->fonts, $dependent->fonts);
+                $dependent->scripts = array_merge($newCollection->scripts, $dependent->scripts);
             }
 
             $this->collections[$key] = $newCollection;
@@ -205,50 +207,153 @@ class AssetManager extends ServiceAbstract
 
     private function getStyles(AssetAbstract $collection)
     {
-        $styles = [];
-        $path = isset($collection->basePath) ? $collection->basePath : $this->basePath;
-
-        if(!empty($collection->css)){
-            $cssPath = isset($collection->cssPath) ? $collection->cssPath : $this->cssPath;
-            $cssPath = str_replace(['//', '\\\\', DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR], '/', $path . $cssPath . '/');
-            foreach($collection->css as $css){
-                $styles[] = $cssPath . $css . '.css';
-            }
-        }
-
-        return $styles;
+        return $this->getAsset($collection, 'css');
     }
 
     private function getScripts(AssetAbstract $collection)
     {
-        $scripts = [];
-        $path = isset($collection->basePath) ? $collection->basePath : $this->basePath;
-
-        if(!empty($collection->js)){
-            $jsPath = isset($collection->jsPath) ? $collection->jsPath : $this->jsPath;
-            $jsPath = str_replace(['//', '\\\\', DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR], '/', $path . $jsPath . '/');
-            foreach($collection->js as $js){
-                $scripts[] = $jsPath . $js . '.js';
-            }
-        }
-
-        return $scripts;
+        return $this->getAsset($collection, 'js', '.js');
     }
 
     private function getFonts(AssetAbstract $collection)
     {
-        $fonts = [];
+        return $this->getAsset($collection, 'fonts');
+    }
+
+    private function getAsset(AssetAbstract $collection, $assetName, $ext = '.css')
+    {
+        switch($assetName){
+            case 'js':
+                $pos = $collection->jsPos;
+                break;
+            case 'fonts':
+                $pos = $collection->fontsPos;
+                break;
+            case 'css':
+                $pos = $collection->cssPos;
+                break;
+            default:
+                $pos = null;
+                break;
+        }
+
+        $assetsArr = [];
         $path = isset($collection->basePath) ? $collection->basePath : $this->basePath;
 
-        if(!empty($collection->fonts)){
-            $fontsPath = isset($collection->fontsPath) ? $collection->fontsPath : $this->fontsPath;
-            $fontsPath = str_replace(['//', '\\\\', DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR], '/', $path . $fontsPath . '/');
-            foreach($collection->fonts as $font){
-                $fonts[] = $fontsPath . $font;
+        if(!empty($collection->$assetName)){
+            $pathName = $assetName . 'Path';
+            $assetPath = isset($collection->$pathName) ? $collection->$pathName : $this->$pathName;
+            $assetPath = str_replace(['//', '\\\\', DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR], '/', $path . $assetPath . '/');
+            foreach($collection->$assetName as $asset){
+                $assetsArr[] = [
+                    'file' => $assetPath . $asset . $ext,
+                    'pos' => $pos,
+                ];
             }
         }
 
-        return $fonts;
+        return $assetsArr;
+    }
+
+    private function displayAssets($collection, $assetName)
+    {
+        switch($assetName){
+            case 'js':
+                $displayedArr = &$this->_displayedJs;
+                $pattern = $this->jsPattern;
+                break;
+            case 'fonts':
+                $displayedArr = &$this->_displayedFonts;
+                $pattern = $this->fontPattern;
+                break;
+            case 'scripts':
+                $displayedArr = &$this->_displayedScripts;
+                $pattern = $this->scriptsPattern;
+                break;
+            default:
+                $displayedArr = &$this->_displayedScc;
+                $pattern = $this->cssPattern;
+                break;
+        }
+
+        $i = 0;
+
+        foreach($this->getAssetsArray($collection, $assetName) as $asset){
+            if(is_array($asset)){
+                $pos = $asset['pos'];
+                $file = $asset['file'];
+            }else{
+                $pos = null;
+                $file = $asset;
+            }
+
+            if(in_array($file, $displayedArr)){
+                continue;
+            }
+            $displayedArr[] = $file;
+
+            if($pos !== null && $pos !== AssetAbstract::POS_CONTENT && $assetName !== 'scripts'){
+                $displayedString = '';
+                $elementName = 'new_page_elem_' . $assetName . $i++;
+
+                switch($pos){
+                    case AssetAbstract::POS_TOP:
+                        $identifier = 'document.getElementsByTagName("head")[0]';
+                        break;
+                    default:
+                        $identifier = 'document.getElementsByTagName("body")[0]';
+                        break;
+                }
+
+                switch($assetName){
+                    case 'js':
+                        $displayedString .= ';var '. $elementName . '=document.createElement("script");';
+                        $displayedString .= $elementName . '.setAttribute("type","text/javascript");';
+                        $displayedString .= $elementName . '.setAttribute("src", "' . $file . '");';
+                        $displayedString .= $identifier . '.appendChild(' . $elementName . ');';
+                        break;
+                    default:
+                        $displayedString .= ';var '. $elementName . '=document.createElement("link");';
+                        $displayedString .= $elementName . '.setAttribute("rel", "stylesheet");';
+                        $displayedString .= $elementName . '.setAttribute("type", "text/css");';
+                        $displayedString .= $elementName . '.setAttribute("href", "' . $file . '");';
+                        $displayedString .= $identifier . '.appendChild(' . $elementName . ');';
+                        break;
+                }
+
+                $displayedString = sprintf($this->displayAfterRenderPattern, $displayedString);
+            }else{
+                if($assetName !== 'scripts'){
+                    $displayedString = sprintf($pattern, $this->getMimeType($file), $file);
+                }else{
+                    $displayedString = sprintf($pattern, $file);
+                }
+            }
+
+            echo $displayedString;
+        }
+    }
+
+    private function getAssetsArray($collection, $assetName)
+    {
+        $assetsArray = [];
+        if($collection !== null){
+            $collection = $this->getCollection($collection);
+            if($collection !== null){
+                $assetsArray = $collection->$assetName;
+            }
+            foreach($this->collections as $collection){
+                if($collection->priority == AssetAbstract::PRIORITY_MAIN){
+                    $assetsArray = array_merge($assetsArray, $collection->$assetName);
+                }
+            }
+        }else{
+            foreach($this->collections as $collection){
+                $assetsArray = array_merge($assetsArray, $collection->$assetName);
+            }
+        }
+
+        return array_merge($assetsArray, $this->$assetName);
     }
 
     private function getMimeType($link)

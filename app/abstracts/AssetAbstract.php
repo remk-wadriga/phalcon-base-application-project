@@ -14,17 +14,24 @@ abstract class AssetAbstract
 {
     const PRIORITY_MAIN = 1;
     const PRIORITY_PAGE = 2;
+    const POS_TOP = 1;
+    const POS_CONTENT = 2;
+    const POS_BOTTOM = 3;
 
     public $id;
     public $js = [];
     public $css = [];
     public $fonts = [];
+    public $scripts = [];
     public $depending = [];
     public $basePath;
     public $cssPath;
     public $jsPath;
     public $fontsPath;
     public $priority;
+    public $cssPos;
+    public $jsPos;
+    public $fontsPos;
 
     public function __construct($params = [])
     {
@@ -40,5 +47,10 @@ abstract class AssetAbstract
     public function init()
     {
 
+    }
+
+    public static function className()
+    {
+        return get_called_class();
     }
 }

@@ -27,7 +27,7 @@ class BootstrapAsset extends AssetAbstract
     ];
 
     public $fonts = [
-        'font-awesome.css',
+        'font-awesome',
     ];
 
     public $depending = [

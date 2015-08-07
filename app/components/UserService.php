@@ -15,6 +15,7 @@ use Phalcon\Exception;
 use Phalcon\Session\Adapter\Files AS SessionAdapter;
 use Phalcon\Events\EventsAwareInterface;
 use Phalcon\Events\ManagerInterface;
+use Phalcon\Di;
 
 class UserService extends ServiceAbstract implements EventsAwareInterface
 {
@@ -34,9 +35,10 @@ class UserService extends ServiceAbstract implements EventsAwareInterface
     private $_eventsManager;
 
     /**
-     * @var SessionAdapter
+     * @var \Phalcon\Di
      */
-    public $_session;
+    private $_di;
+
     public $identityClass;
     public $sessionKey = 'USER_IDENTITY';
 
@@ -93,9 +95,9 @@ class UserService extends ServiceAbstract implements EventsAwareInterface
         $this->getSession()->remove($this->sessionKey);
     }
 
-    public function setSession(SessionAdapter $adapter)
+    public function setDi(Di $di)
     {
-        $this->_session = $adapter;
+        $this->_di = $di;
     }
 
     /**
@@ -104,7 +106,7 @@ class UserService extends ServiceAbstract implements EventsAwareInterface
      */
     public function getSession()
     {
-        return $this->_session;
+        return $this->_di->get('session');
     }
 
     /**

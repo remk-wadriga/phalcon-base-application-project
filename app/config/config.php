@@ -61,15 +61,29 @@ return new \Phalcon\Config([
     ],
 
     'volt' => [
-        'compilePath' => APP_PATH . '/app/cache/volt/',
+        'options' => [
+            'compiledPath' => APP_PATH . '/app/cache/volt/',
+            'compiledSeparator' => '_',
+            'stat' => true,
+            'compileAlways' => true,
+        ],
         'functions' => [
-            'left_menu' => [
-                'function' => '\\widgets\\accordion\\AccordionWidget::run',
-                'params' => [
-                    'modelClass' => '\\models\\LeftMenu',
-                    'methodName' => 'getItemsArray',
-                ]
-            ],
+            'print' => 'print_r',
+            'var' => 'var_dump',
+            'pre' => '\'<pre>\'; print_r({params}); echo \'</pre>\'',
+            'exit' => '\'<pre>\'; print_r({params}); exit(\'</pre>\')',
+            'pre_var' => '\'<pre>\'; var_dump({params}); echo \'</pre>\'',
+            'exit_var' => '\'<pre>\'; var_dump({params}); exit \'</pre>\'',
         ]
+    ],
+
+    'widget' => [
+        'widgetsNameSpace' => 'widgets',
+        'widgets' => [
+            'accordion' => [
+                'modelClass' => '\\models\\LeftMenu',
+                'methodName' => 'getItemsArray',
+            ],
+        ],
     ],
 ]);

@@ -9,12 +9,15 @@
 
 namespace abstracts;
 
+use interfaces\AssetManagerInterface;
 
 abstract class WidgetAbstract
 {
     public $basePath = APP_PATH . '/app/widgets';
     public $templatesView = '/views';
     public $defaultView = 'index.php';
+
+    private $_widgetName;
 
     public function __construct($params = [])
     {
@@ -28,11 +31,19 @@ abstract class WidgetAbstract
     public static function run($params = [])
     {
         $class = get_called_class();
-        $widget = new $class($params);
-        call_user_func([$widget, 'init']);
+        return new $class($params);
     }
 
-    abstract function init();
+    /**
+     * getAssets
+     * @return AssetAbstract[]
+     */
+    public function getAssets()
+    {
+        return [];
+    }
+
+    abstract public function init();
 
     /**
      * render
@@ -70,12 +81,25 @@ abstract class WidgetAbstract
             $view = $this->defaultView;
         }
 
+        $view = $this->basePath . DIRECTORY_SEPARATOR . $this->getWidgetName() . $this->templatesView . DIRECTORY_SEPARATOR . $view;
+        return $this->getCorrectPath($view);
+    }
+
+    private function getWidgetName()
+    {
+        if($this->_widgetName !== null){
+            return $this->_widgetName;
+        }
+
         $className = get_class($this);
         $classParts = explode('\\', $className);
-
         array_shift($classParts);
         array_pop($classParts);
-        $view = $this->basePath . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $classParts) . $this->templatesView . DIRECTORY_SEPARATOR . $view;
-        return str_replace(['/', '\\', '//', '\\\\'], DIRECTORY_SEPARATOR, $view);
+        return $this->_widgetName = implode('/', $classParts);
+    }
+
+    private function getCorrectPath($path)
+    {
+        return str_replace(['/', '\\', '//', '\\\\'], DIRECTORY_SEPARATOR, $path);
     }
 }

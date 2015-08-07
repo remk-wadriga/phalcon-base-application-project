@@ -10,6 +10,8 @@
 namespace widgets\accordion;
 
 use abstracts\WidgetAbstract;
+use abstracts\AssetAbstract;
+use widgets\accordion\assets\AccordionAsset;
 
 class AccordionWidget extends WidgetAbstract
 {
@@ -18,33 +20,48 @@ class AccordionWidget extends WidgetAbstract
     public $modelClass;
     public $methodName;
 
-    protected $_items = [];
+    protected $_items;
 
     public function init()
     {
-        $class = $this->modelClass;
-        $method = $this->methodName;
-
-        if(!class_exists($class) || !method_exists($class, $method)){
-            return null;
-        }
-
-        $this->createItems($class::$method());
-
         echo $this->render('template.php', [
             'content' => $this->renderItems()
         ]);
     }
 
-    protected function createItems(array $items = null)
+    /**
+     * getAssets
+     * @return AssetAbstract[]
+     */
+    public function getAssets()
     {
-        $this->_items = $items;
+        return [
+            'accordionAsset' => AccordionAsset::className(),
+        ];
+    }
+
+    public function getItems()
+    {
+        if($this->_items !== null){
+            return $this->_items;
+        }
+
+        $class = $this->modelClass;
+        $method = $this->methodName;
+
+        $this->_items = [];
+
+        if(class_exists($class) && method_exists($class, $method)){
+            $this->_items = $class::$method();
+        }
+
+        return $this->_items;
     }
 
     protected function renderItems(array $items = null)
     {
         if($items === null){
-            $items = $this->_items;
+            $items = $this->getItems();
         }
         $string = '';
 

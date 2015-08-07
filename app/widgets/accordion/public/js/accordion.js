@@ -1,8 +1,8 @@
 /**
- * Created by Developer on 05-08-2015.
+ * Created by Developer on 06-08-2015.
  */
 
-LeftMenu = {
+Accordion = {
 
     leftMenuID: '#left_menu_accordion',
 
@@ -15,12 +15,12 @@ LeftMenu = {
             });
         }
 
-        LeftMenu.setAutoFunctions();
-        LeftMenu.setHandlers();
+        Accordion.setAutoFunctions();
+        Accordion.setHandlers();
     },
 
     setAutoFunctions: function(){
-        LeftMenu.initLeftMenuPlugin();
+        Accordion.initLeftMenuPlugin();
     },
 
     setHandlers: function(){
@@ -31,7 +31,7 @@ LeftMenu = {
     // Auto functions
 
     initLeftMenuPlugin: function(){
-        $(LeftMenu.leftMenuID).metisMenu();
+        $(Accordion.leftMenuID).metisMenu();
     }
 
     // END Auto functions

@@ -18,6 +18,7 @@ use Phalcon\Events\Manager as EventManager;
 use listeners\AuthListener;
 use listeners\ControllersListener;
 use components\AssetManager;
+use components\WidgetManager;
 
 /**
  * The FactoryDefault Dependency Injector automatically register the right services providing a full stack framework
@@ -27,12 +28,14 @@ $di = new FactoryDefault();
 /**
  * Event manager
  */
-$eventsManager = new EventManager();
+$di->set('eventManager', function(){
+    return new EventManager();
+});
 
 /**
  * The URL component is used to generate all kind of urls in the application
  */
-$di->set('url', function () use ($config) {
+$di->set('url', function()use($config){
     $url = new UrlResolver();
     $url->setBaseUri($config->application->baseUri);
 
@@ -42,47 +45,44 @@ $di->set('url', function () use ($config) {
 /**
  * Setting up the view component
  */
-$di->setShared('view', function () use ($config) {
-
+$di->setShared('view', function()use($config){
     $view = new View();
-
     $view->setViewsDir($config->application->viewsDir);
     $view->setVars($config->view->vars->toArray());
 
-    $view->registerEngines(array(
-        '.volt' => function ($view, $di) use ($config) {
-
+    $view->registerEngines([
+        '.volt' => function($view, $di)use($config){
             $volt = new VoltEngine($view, $di);
-
-            $volt->setOptions(array(
-                'compiledPath' => $config->volt->compilePath,
-                'compiledSeparator' => '_',
-                'stat' => true,
-                'compileAlways' => true,
-            ));
+            $volt->setOptions($config->volt->options->toArray());
 
             $functions = $config->volt->functions->toArray();
             foreach($functions as $name => $function){
-                $volt->getCompiler()->addFunction($name, function($params) use($function) {
-                    if(!is_array($params)){
-                        $params = (array)$params;
-                    }
+                $volt->getCompiler()->addFunction($name, function($params)use($function) {
                     if(is_array($function)){
                         $funcArray = $function;
                         $function = $funcArray['function'];
-                        $params = array_merge($params, $funcArray['params']);
+                        if(isset($funcArray['params']) && !empty($funcArray['params'])){
+                            if(!is_array($params)){
+                                $params = (array)$params;
+                            }
+                            $params = array_merge($params, $funcArray['params']);
+                            $params = serialize(array_filter($params));
+                            return "$function(unserialize('{$params}'))";
+                        }
                     }
 
-                    $params = serialize(array_filter($params));
-
-                    return "$function(unserialize('{$params}'))";
+                    if(strpos($function, '{params}') !== false){
+                        return str_replace('{params}', $params, $function);
+                    }else{
+                        return "{$function}({$params})";
+                    }
                 });
             }
 
             return $volt;
         },
         '.phtml' => 'Phalcon\Mvc\View\Engine\Php'
-    ));
+    ]);
 
     return $view;
 });
@@ -90,7 +90,7 @@ $di->setShared('view', function () use ($config) {
 /**
  * Database connection is created based in the parameters defined in the configuration file
  */
-$di->set('db', function () use ($config) {
+$di->set('db', function()use($config){
     return new DbAdapter($config->database->toArray());
 });
 
@@ -104,7 +104,7 @@ $di->set('db', function () use ($config) {
 /**
  * Start the session the first time some component request the session service
  */
-$di->setShared('session', function () {
+$di->setShared('session', function(){
     $session = new SessionAdapter();
     $session->start();
 
@@ -114,32 +114,31 @@ $di->setShared('session', function () {
 /**
  * Set the dispatcher
  */
-$di->set('dispatcher', function() use ($eventsManager, $di) {
+$di->set('dispatcher', function()use($di){
     $dispatcher = new Dispatcher();
     $dispatcher->setDefaultNamespace('controllers');
-
+    $eventsManager = $di->get('eventManager');
     // Set the event manager for dispatcher
     $dispatcher->setEventsManager($eventsManager);
     // Attach the listener
     $eventsManager->attach('dispatch', new ControllersListener($di));
-
     return $dispatcher;
 });
 
 /**
  * Set the timeService
  */
-$di->set('timeService', function () use ($config) {
+$di->setShared('timeService', function()use($config){
     return new TimeService($config->timeService->toArray());
 });
 
 /**
  * Set the User Service
  */
-$di->set('user', function () use ($config, $di, $eventsManager) {
+$di->setShared('user', function()use($config, $di){
     $user = new UserService($config->user->toArray());
-    $user->setSession($di->get('session'));
-
+    $user->setDi($di);
+    $eventsManager = $di->get('eventManager');
     // Set the event manager for user service
     $user->setEventsManager($eventsManager);
     // Attach the listener
@@ -150,9 +149,13 @@ $di->set('user', function () use ($config, $di, $eventsManager) {
 /**
  * Set the Asset manager
  */
-$di->set('assetManager', function() use ($config, $di) {
-    $assetManager = new AssetManager(array_merge($config->assetManager->toArray(), [
-        'manager' => $di->get('assets')
-    ]));
-    return $assetManager;
+$di->setShared('assetManager', function()use($config){
+    return new AssetManager($config->assetManager->toArray());
+});
+
+// Set the Widget manager
+$di->setShared('widget', function()use($config, $di){
+    $widgetManager = new WidgetManager($config->widget->toArray());
+    $widgetManager->setDi($di);
+    return $widgetManager;
 });

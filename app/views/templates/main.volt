@@ -12,7 +12,6 @@
 </head>
 
 <body>
-
     <div id="main_wrapper">
 
         <div class="row show-grid" id="header_wrapper">
@@ -25,7 +24,7 @@
 
             <div class="col-md-3" id="left_menu">
                 {% block leftMenu %}
-                    {{ left_menu() }}
+                    {{ widget.run('accordion') }}
                 {% endblock %}
             </div>
 
@@ -44,6 +43,7 @@
     </div>
 
     {{ assetManager.displayJs('main') }}
+    {{ assetManager.displayScripts('main') }}
 
     {{ partial('templates/_init-javasripts') }}
 </body>
